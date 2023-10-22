@@ -85,16 +85,50 @@ class ResizeDecorator : public NodeDecorator {
   const bool resize_down_;
 };
 
+class DropShadowDecorator : public NodeDecorator {
+public:
+    DropShadowDecorator(Element child)
+            : NodeDecorator(std::move(child)) {}
+
+    void Render(Screen& screen) override {
+        NodeDecorator::Render(screen);
+
+        // right side of window
+        for (int y = box_.y_min; y <= box_.y_max; ++y) {
+            auto &cell = screen.PixelAt(box_.x_max+1, y+1);
+            cell.foreground_color = Color::GrayDark;
+            cell.background_color = Color::Black;
+            cell.automerge = false;
+        }
+
+        // bottom side of window
+        // stop short by 1 since the right side already handled the bottom right corner shadow
+        for (int x = box_.x_min; x < box_.x_max; ++x) {
+            auto& cell = screen.PixelAt(x+1, box_.y_max+1);
+            cell.foreground_color = Color::GrayDark;
+            cell.background_color = Color::Black;
+            cell.automerge = false;
+        }
+    }
+};
+
+
 Element DefaultRenderState(const WindowRenderState& state) {
   Element element = state.inner;
-  if (state.active) {
+  Element titleElement = center(text(state.title));
+  if (!state.active) {
     element |= dim;
+    titleElement |= dim;
   }
 
-  element = window(text(state.title), element);
+  element = window(titleElement, element, state.active);
+
+  element |= bgcolor(Color::Cyan);
   element |= clear_under;
 
   const Color color = Color::Red;
+
+  element = std::make_shared<DropShadowDecorator>(element);
 
   element = std::make_shared<ResizeDecorator>(  //
       element,                                  //

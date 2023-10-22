@@ -20,7 +20,7 @@ namespace ftxui {
 
 namespace {
 using Charset = std::array<std::string, 6>;  // NOLINT
-using Charsets = std::array<Charset, 6>;     // NOLINT
+using Charsets = std::array<Charset, 7>;     // NOLINT
 // NOLINTNEXTLINE
 static Charsets simple_border_charset = {
     Charset{"┌", "┐", "└", "┘", "─", "│"},  // LIGHT
@@ -29,6 +29,7 @@ static Charsets simple_border_charset = {
     Charset{"╔", "╗", "╚", "╝", "═", "║"},  // DOUBLE
     Charset{"╭", "╮", "╰", "╯", "─", "│"},  // ROUNDED
     Charset{" ", " ", " ", " ", " ", " "},  // EMPTY
+    Charset{"■", "≡", " ", "·", " ", " "},  // FOXPRO
 };
 
 // For reference, here is the charset for normal border:
@@ -36,13 +37,16 @@ class Border : public Node {
  public:
   Border(Elements children,
          BorderStyle style,
-         std::optional<Color> foreground_color = std::nullopt)
+         std::optional<Color> foreground_color = std::nullopt,
+         std::optional<Color> background_color = std::nullopt)
       : Node(std::move(children)),
         charset_(simple_border_charset[style]),
-        foreground_color_(foreground_color) {}  // NOLINT
+        foreground_color_(foreground_color),
+        background_color_(background_color) {}  // NOLINT
 
   const Charset& charset_;  // NOLINT
   std::optional<Color> foreground_color_;
+  std::optional<Color> background_color_;
 
   void ComputeRequirement() override {
     Node::ComputeRequirement();
@@ -113,7 +117,7 @@ class Border : public Node {
     }
 
     // Draw the border color.
-    if (foreground_color_) {
+    if (foreground_color_ && !background_color_) {
       for (int x = box_.x_min; x <= box_.x_max; ++x) {
         screen.PixelAt(x, box_.y_min).foreground_color = *foreground_color_;
         screen.PixelAt(x, box_.y_max).foreground_color = *foreground_color_;
@@ -122,6 +126,20 @@ class Border : public Node {
         screen.PixelAt(box_.x_min, y).foreground_color = *foreground_color_;
         screen.PixelAt(box_.x_max, y).foreground_color = *foreground_color_;
       }
+    }
+    else if (foreground_color_ && background_color_) {
+        for (int x = box_.x_min; x <= box_.x_max; ++x) {
+            screen.PixelAt(x, box_.y_min).foreground_color = *foreground_color_;
+            screen.PixelAt(x, box_.y_max).foreground_color = *foreground_color_;
+            screen.PixelAt(x, box_.y_min).background_color = *background_color_;
+            screen.PixelAt(x, box_.y_max).background_color = *background_color_;
+        }
+        for (int y = box_.y_min; y <= box_.y_max; ++y) {
+            screen.PixelAt(box_.x_min, y).foreground_color = *foreground_color_;
+            screen.PixelAt(box_.x_max, y).foreground_color = *foreground_color_;
+            screen.PixelAt(box_.x_min, y).background_color = *background_color_;
+            screen.PixelAt(box_.x_max, y).background_color = *background_color_;
+        }
     }
   }
 };
@@ -497,8 +515,9 @@ Element borderEmpty(Element child) {
 /// │content│
 /// └───────┘
 /// ```
-Element window(Element title, Element content) {
-  return std::make_shared<Border>(unpack(std::move(content), std::move(title)),
-                                  ROUNDED);
+Element window(Element title, Element content, bool active) {
+    Element element = std::make_shared<Border>(unpack(std::move(content), std::move(title)),
+                                  active? FOXPRO : EMPTY, Color::YellowLight, Color::GrayLight);
+    return element;
 }
 }  // namespace ftxui

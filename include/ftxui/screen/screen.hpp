@@ -47,7 +47,7 @@ struct Pixel {
   std::string character = " ";
 
   // Colors:
-  Color background_color = Color::Default;
+  Color background_color = Color::DarkBlue;
   Color foreground_color = Color::Default;
 };
 
