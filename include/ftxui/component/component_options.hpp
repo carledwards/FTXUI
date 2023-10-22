@@ -237,10 +237,6 @@ struct WindowRenderState {
   bool active = false;       ///< Whether the window is the active one.
   bool drag = false;         ///< Whether the window is being dragged.
   bool resize = false;       ///< Whether the window is being resized.
-  bool hover_left = false;   ///< Whether the resizeable left side is hovered.
-  bool hover_right = false;  ///< Whether the resizeable right side is hovered.
-  bool hover_top = false;    ///< Whether the resizeable top side is hovered.
-  bool hover_down = false;   ///< Whether the resizeable down side is hovered.
 };
 
 // @brief Option for the `Window` component.
@@ -254,10 +250,7 @@ struct WindowOptions {
   Ref<int> width = 20;   ///< The width of the window.
   Ref<int> height = 10;  ///< The height of the window.
 
-  Ref<bool> resize_left = true;   ///< Can the left side be resized?
-  Ref<bool> resize_right = true;  ///< Can the right side be resized?
-  Ref<bool> resize_top = true;    ///< Can the top side be resized?
-  Ref<bool> resize_down = true;   ///< Can the down side be resized?
+  Ref<bool> resize = true;   ///< Can the the window be resized?
 
   /// An optional function to customize how the window looks like:
   std::function<Element(const WindowRenderState&)> render;
